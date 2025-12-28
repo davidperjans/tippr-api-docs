@@ -2,9 +2,290 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Tippr API",
+    "description": "Football prediction league API. Authenticate with Supabase JWT token.",
     "version": "v1"
   },
   "paths": {
+    "/api/admin/apifootball/tournaments/{tournamentId}/baseline": {
+      "post": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Sync tournament baseline data (teams, venues, fixtures) from API-FOOTBALL.\r\nThis is the initial sync that maps external data to existing teams/matches.\r\nUse createMissingTeams=true to auto-create teams that don't exist in the database.",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "createMissingTeams",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncTournamentBaselineResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apifootball/tournaments/{tournamentId}/results": {
+      "post": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Sync tournament match results from API-FOOTBALL.\r\nUpdates scores and statuses for matches that are live or recently finished.",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncTournamentResultsResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apifootball/matches/{matchId}/lineups": {
+      "post": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Sync match lineups from API-FOOTBALL.\r\nLineups are typically available ~60 minutes before kickoff.",
+        "parameters": [
+          {
+            "name": "matchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncMatchLineupsResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apifootball/leagues/validate": {
+      "get": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Validate that a league/season combination exists in API-FOOTBALL\r\nand check what data coverage is available.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidateLeagueResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apifootball/tournaments/{tournamentId}/merge-teams": {
+      "post": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Merge duplicate teams in a tournament.\r\nFinds old teams (without ApiFootballId) and merges them with new teams (with ApiFootballId).\r\nTransfers DisplayName (Swedish name), FifaRank, FifaPoints, and updates all references.\r\nUse dryRun=true (default) to preview changes without applying them.",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dryRun",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MergeDuplicateTeamsResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apifootball/tournaments/{tournamentId}/standings": {
+      "post": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Sync group standings from API-FOOTBALL.\r\nCreates groups if they don't exist, assigns teams to groups,\r\nand updates group standings (position, points, goals, etc.).",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncGroupStandingsResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apifootball/tournaments/{tournamentId}/squads": {
+      "post": {
+        "tags": [
+          "AdminApiFootball"
+        ],
+        "summary": "Sync team squads (players) from API-FOOTBALL.\r\nFetches all players for all teams in the tournament.\r\nPlayers are used for top scorer predictions and lineup display.",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncTeamSquadsResultResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/bonus-predictions": {
       "get": {
         "tags": [
@@ -58,17 +339,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminBonusPredictionListDtoPagedResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminBonusPredictionListDtoPagedResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminBonusPredictionListDtoPagedResultResult"
                 }
@@ -98,17 +369,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminBonusQuestionDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminBonusQuestionDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminBonusQuestionDtoResult"
                 }
@@ -155,17 +416,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminBonusQuestionDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminBonusQuestionDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminBonusQuestionDtoResult"
                 }
@@ -193,17 +444,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -233,17 +474,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateBonusQuestionResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateBonusQuestionResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RecalculateBonusQuestionResultResult"
                 }
@@ -289,17 +520,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminChatMessagesResponseResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminChatMessagesResponseResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminChatMessagesResponseResult"
                 }
@@ -329,17 +550,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -408,17 +619,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueListDtoPagedResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueListDtoPagedResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminLeagueListDtoPagedResultResult"
                 }
@@ -448,17 +649,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminLeagueDtoResult"
                 }
@@ -505,17 +696,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminLeagueDtoResult"
                 }
@@ -543,17 +724,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -583,17 +754,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/StringResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StringResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StringResult"
                 }
@@ -623,17 +784,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueMemberDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminLeagueMemberDtoIReadOnlyListResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminLeagueMemberDtoIReadOnlyListResult"
                 }
@@ -680,17 +831,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
@@ -729,17 +870,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -795,17 +926,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -835,17 +956,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -883,17 +994,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
@@ -942,17 +1043,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminMatchDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminMatchDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminMatchDtoResult"
                 }
@@ -1001,17 +1092,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1049,17 +1130,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BulkCreateMatchesResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BulkCreateMatchesResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BulkCreateMatchesResultResult"
                 }
@@ -1089,17 +1160,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateMatchPointsResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateMatchPointsResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RecalculateMatchPointsResultResult"
                 }
@@ -1170,17 +1231,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminPredictionListDtoPagedResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminPredictionListDtoPagedResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminPredictionListDtoPagedResultResult"
                 }
@@ -1210,17 +1261,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminPredictionDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminPredictionDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminPredictionDtoResult"
                 }
@@ -1248,17 +1289,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1287,17 +1318,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateLeaguePredictionsResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateLeaguePredictionsResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RecalculateLeaguePredictionsResultResult"
                 }
@@ -1335,17 +1356,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
@@ -1394,17 +1405,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminTeamDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminTeamDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminTeamDtoResult"
                 }
@@ -1432,17 +1433,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1480,17 +1471,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BulkCreateTeamsResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BulkCreateTeamsResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BulkCreateTeamsResultResult"
                 }
@@ -1539,17 +1520,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminTournamentDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminTournamentDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminTournamentDtoResult"
                 }
@@ -1577,17 +1548,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1617,17 +1578,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1657,17 +1608,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1697,17 +1638,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateTournamentStandingsResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecalculateTournamentStandingsResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RecalculateTournamentStandingsResultResult"
                 }
@@ -1760,17 +1691,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserListDtoPagedResultResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserListDtoPagedResultResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminUserListDtoPagedResultResult"
                 }
@@ -1800,17 +1721,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminUserDtoResult"
                 }
@@ -1857,17 +1768,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserDtoResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserDtoResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AdminUserDtoResult"
                 }
@@ -1916,17 +1817,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1956,17 +1847,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -1996,17 +1877,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
@@ -2021,23 +1892,35 @@
         "tags": [
           "Auth"
         ],
+        "summary": "Retrieves the current authenticated user's profile information.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Side Effects:</b> Updates the user's LastLoginAt timestamp\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/auth/me\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"userId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"email\": \"user@example.com\",\r\n                 \"username\": \"johndoe\",\r\n                 \"displayName\": \"John Doe\",\r\n                 \"avatarUrl\": \"https://storage.example.com/avatars/user.jpg\",\r\n                 \"bio\": \"Football enthusiast\",\r\n                 \"favoriteTeamId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"favoriteTeamName\": \"Manchester United\",\r\n                 \"lastLoginAt\": \"2024-01-15T10:30:00Z\",\r\n                 \"role\": \"User\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the current user's profile",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentUserResponseResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CurrentUserResponseResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CurrentUserResponseResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User has not been synced (should not occur with middleware)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2050,7 +1933,10 @@
         "tags": [
           "BonusPrediction"
         ],
+        "summary": "Submits a prediction for a bonus question within a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Rules:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>User must be a member of the specified league</description>\r\n  </item>\r\n  <item>\r\n    <description>BonusQuestion must belong to the league's tournament</description>\r\n  </item>\r\n  <item>\r\n    <description>Cannot submit after the bonus question is resolved</description>\r\n  </item>\r\n  <item>\r\n    <description>Submitting again will update the existing prediction</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request (Team answer):</b>\r\n\r\n```\r\n             POST /api/bonus-predictions\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"leagueId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"bonusQuestionId\": \"4fb96f75-6818-5673-c4gd-3d074g77bfb7\",\r\n               \"answerTeamId\": \"5gc07h86-7929-6784-d5he-4e185h88cgc8\",\r\n               \"answerText\": null\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Request (Text answer):</b>\r\n\r\n```\r\n             POST /api/bonus-predictions\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"leagueId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"bonusQuestionId\": \"4fb96f75-6818-5673-c4gd-3d074g77bfb7\",\r\n               \"answerTeamId\": null,\r\n               \"answerText\": \"Kylian Mbappe\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": \"6hd18i97-8030-7895-e6if-5f296i99dhd9\",\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
+          "description": "The bonus prediction details",
           "content": {
             "application/json": {
               "schema": {
@@ -2071,21 +1957,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Bonus prediction submitted successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Question already resolved or invalid answer type",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of the league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League or bonus question not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2096,10 +2012,13 @@
         "tags": [
           "BonusPrediction"
         ],
+        "summary": "Retrieves the current user's bonus predictions for a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/bonus-predictions?leagueId=3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"bonusQuestionId\": \"...\",\r\n                   \"question\": \"Who will win the World Cup?\",\r\n                   \"questionType\": \"Winner\",\r\n                   \"answerTeamId\": \"...\",\r\n                   \"answerTeamName\": \"Brazil\",\r\n                   \"answerText\": null,\r\n                   \"points\": 10,\r\n                   \"isCorrect\": true,\r\n                   \"isResolved\": true\r\n                 },\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"bonusQuestionId\": \"...\",\r\n                   \"question\": \"Who will be the top scorer?\",\r\n                   \"questionType\": \"TopScorer\",\r\n                   \"answerTeamId\": null,\r\n                   \"answerTeamName\": null,\r\n                   \"answerText\": \"Kylian Mbappe\",\r\n                   \"points\": null,\r\n                   \"isCorrect\": null,\r\n                   \"isResolved\": false\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "leagueId",
             "in": "query",
+            "description": "The league ID to get bonus predictions for",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2108,21 +2027,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the user's bonus predictions",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BonusPredictionDtoListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BonusPredictionDtoListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BonusPredictionDtoListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of the league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2135,10 +2064,13 @@
         "tags": [
           "BonusQuestion"
         ],
+        "summary": "Retrieves all bonus questions for a tournament.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/bonus-questions?tournamentId=3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"tournamentId\": \"...\",\r\n                   \"questionType\": \"Winner\",\r\n                   \"question\": \"Who will win the World Cup?\",\r\n                   \"points\": 10,\r\n                   \"isResolved\": false,\r\n                   \"answerTeamId\": null,\r\n                   \"answerText\": null\r\n                 },\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"tournamentId\": \"...\",\r\n                   \"questionType\": \"TopScorer\",\r\n                   \"question\": \"Who will be the top scorer?\",\r\n                   \"points\": 5,\r\n                   \"isResolved\": false,\r\n                   \"answerTeamId\": null,\r\n                   \"answerText\": null\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "tournamentId",
             "in": "query",
+            "description": "The tournament ID to get questions for",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2147,21 +2079,21 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the list of bonus questions",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BonusQuestionDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BonusQuestionDtoIReadOnlyListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BonusQuestionDtoIReadOnlyListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2172,7 +2104,10 @@
         "tags": [
           "BonusQuestion"
         ],
+        "summary": "Creates a new bonus question for a tournament (Admin only).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required (Admin role)\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/bonus-questions\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"tournamentId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"questionType\": \"Winner\",\r\n               \"question\": \"Who will win the World Cup 2026?\",\r\n               \"points\": 10\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
+          "description": "The bonus question details",
           "content": {
             "application/json": {
               "schema": {
@@ -2193,21 +2128,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the ID of the created bonus question",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid question type or points)",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have Admin role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tournament not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2220,10 +2185,13 @@
         "tags": [
           "BonusQuestion"
         ],
+        "summary": "Resolves a bonus question with the correct answer and awards points (Admin only).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required (Admin role)\r\n\r\n\r\n  <b>Side Effects:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>Marks the question as resolved with the correct answer</description>\r\n  </item>\r\n  <item>\r\n    <description>Awards points to all users who predicted correctly</description>\r\n  </item>\r\n  <item>\r\n    <description>Updates league standings for affected leagues</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request (Team answer):</b>\r\n\r\n```\r\n             PUT /api/bonus-questions/3fa85f64-5717-4562-b3fc-2c963f66afa6/resolve\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"answerTeamId\": \"4fb96f75-6818-5673-c4gd-3d074g77bfb7\",\r\n               \"answerText\": null\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Request (Text answer):</b>\r\n\r\n```\r\n             PUT /api/bonus-questions/3fa85f64-5717-4562-b3fc-2c963f66afa6/resolve\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"answerTeamId\": null,\r\n               \"answerText\": \"Kylian Mbappe\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": 15,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The bonus question ID to resolve",
             "required": true,
             "schema": {
               "type": "string",
@@ -2232,6 +2200,7 @@
           }
         ],
         "requestBody": {
+          "description": "The correct answer (team ID or text)",
           "content": {
             "application/json": {
               "schema": {
@@ -2252,21 +2221,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Question resolved and points awarded",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Int32Result"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Int32Result"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Question already resolved or invalid answer",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Int32Result"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have Admin role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bonus question not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2279,10 +2278,13 @@
         "tags": [
           "Chat"
         ],
+        "summary": "Retrieves chat messages for a league with cursor-based pagination.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Pagination:</b> Uses cursor-based pagination for efficient scrolling through message history\r\n\r\n\r\n  <b>Example Request (first page):</b>\r\n\r\n```\r\n             GET /api/chat/messages?leagueId=3fa85f64-5717-4562-b3fc-2c963f66afa6&take=50\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Request (next page):</b>\r\n\r\n```\r\n             GET /api/chat/messages?leagueId=3fa85f64-5717-4562-b3fc-2c963f66afa6&cursor=2024-01-15T10:30:00Z&take=50\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"messages\": [\r\n                   {\r\n                     \"id\": \"...\",\r\n                     \"userId\": \"...\",\r\n                     \"displayName\": \"John Doe\",\r\n                     \"avatarUrl\": \"https://...\",\r\n                     \"content\": \"Great prediction on the Brazil game!\",\r\n                     \"createdAt\": \"2024-01-15T10:30:00Z\"\r\n                   },\r\n                   {\r\n                     \"id\": \"...\",\r\n                     \"userId\": \"...\",\r\n                     \"displayName\": \"Jane Smith\",\r\n                     \"avatarUrl\": \"https://...\",\r\n                     \"content\": \"Thanks! I had a feeling about that one.\",\r\n                     \"createdAt\": \"2024-01-15T10:28:00Z\"\r\n                   }\r\n                 ],\r\n                 \"nextCursor\": \"2024-01-15T10:25:00Z\",\r\n                 \"hasMore\": true\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "leagueId",
             "in": "query",
+            "description": "The league ID to get messages for",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2291,6 +2293,7 @@
           {
             "name": "cursor",
             "in": "query",
+            "description": "Optional cursor (CreatedAt timestamp) to fetch messages before this point",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -2299,6 +2302,7 @@
           {
             "name": "take",
             "in": "query",
+            "description": "Number of messages to retrieve (default: 50, max: 100)",
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -2308,7 +2312,37 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Returns the chat messages"
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of the league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2318,7 +2352,10 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Creates a new prediction league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Side Effects:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>Creates the league with default scoring settings</description>\r\n  </item>\r\n  <item>\r\n    <description>Automatically adds the creator as owner and first member</description>\r\n  </item>\r\n  <item>\r\n    <description>Generates a unique invite code for private leagues</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/leagues\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"name\": \"Office Champions\",\r\n               \"description\": \"Our office prediction league\",\r\n               \"tournamentId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"isPublic\": false,\r\n               \"maxMembers\": 50,\r\n               \"imageUrl\": \"https://example.com/league.png\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
+          "description": "The league creation details",
           "content": {
             "application/json": {
               "schema": {
@@ -2339,21 +2376,41 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the ID of the created league",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (e.g., name too long, invalid tournament)",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tournament not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2364,23 +2421,25 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Retrieves all leagues the current user is a member of.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/leagues\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                   \"name\": \"Office Champions\",\r\n                   \"tournamentName\": \"FIFA World Cup 2026\",\r\n                   \"memberCount\": 12,\r\n                   \"isOwner\": true,\r\n                   \"imageUrl\": \"https://example.com/league.png\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the user's leagues",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeagueListDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LeagueListDtoIReadOnlyListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LeagueListDtoIReadOnlyListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2393,10 +2452,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Retrieves detailed information for a specific league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Access:</b> User must be a member of the league to view details\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"name\": \"Office Champions\",\r\n                 \"description\": \"Our office prediction league\",\r\n                 \"tournament\": { \"id\": \"...\", \"name\": \"FIFA World Cup 2026\" },\r\n                 \"owner\": { \"id\": \"...\", \"displayName\": \"John Doe\" },\r\n                 \"memberCount\": 12,\r\n                 \"maxMembers\": 50,\r\n                 \"isPublic\": false,\r\n                 \"inviteCode\": \"ABC123\",\r\n                 \"settings\": {\r\n                   \"predictionMode\": \"BeforeKickoff\",\r\n                   \"deadlineMinutes\": 15,\r\n                   \"pointsCorrectScore\": 3,\r\n                   \"pointsCorrectOutcome\": 1\r\n                 }\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID",
             "required": true,
             "schema": {
               "type": "string",
@@ -2406,21 +2468,41 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the league details",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeagueDtoResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LeagueDtoResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LeagueDtoResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of this league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2431,10 +2513,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Deletes a league and all associated data (Owner only).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required (must be league owner)\r\n\r\n\r\n  <b>Warning:</b> This is a destructive operation and cannot be undone\r\n\r\n\r\n  <b>Side Effects:</b> Deletes the league, all memberships, predictions, standings, and chat messages\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             DELETE /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": true,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID to delete",
             "required": true,
             "schema": {
               "type": "string",
@@ -2444,21 +2529,41 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "League deleted successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not the owner of this league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2471,10 +2576,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Joins an existing league using an optional invite code.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Rules:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>Public leagues: No invite code required</description>\r\n  </item>\r\n  <item>\r\n    <description>Private leagues: Valid invite code is required</description>\r\n  </item>\r\n  <item>\r\n    <description>Cannot join if already a member</description>\r\n  </item>\r\n  <item>\r\n    <description>Cannot join if league is at max capacity</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Side Effects:</b> Creates a LeagueMember entry for the user\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6/join\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"inviteCode\": \"ABC123\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": true,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID to join",
             "required": true,
             "schema": {
               "type": "string",
@@ -2483,6 +2591,7 @@
           }
         ],
         "requestBody": {
+          "description": "The invite code (required for private leagues)",
           "content": {
             "application/json": {
               "schema": {
@@ -2503,21 +2612,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully joined the league",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid invite code or league is full",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "User is already a member of this league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2530,10 +2669,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Leaves a league the current user is a member of.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Rules:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>League owner cannot leave (must delete or transfer ownership)</description>\r\n  </item>\r\n  <item>\r\n    <description>User must be a member to leave</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Side Effects:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>Removes LeagueMember entry</description>\r\n  </item>\r\n  <item>\r\n    <description>User's predictions and standings remain for historical purposes</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6/leave\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": true,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID to leave",
             "required": true,
             "schema": {
               "type": "string",
@@ -2543,21 +2685,41 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully left the league",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Owner cannot leave the league",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found or user is not a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2570,10 +2732,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Updates the settings for a league (Owner only).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required (must be league owner)\r\n\r\n\r\n  <b>Partial Update:</b> All fields are optional; only provided values are updated\r\n\r\n\r\n  <b>Settings:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>predictionMode: \"BeforeKickoff\" or \"BeforeMatchday\"</description>\r\n  </item>\r\n  <item>\r\n    <description>deadlineMinutes: Minutes before kickoff when predictions lock</description>\r\n  </item>\r\n  <item>\r\n    <description>pointsCorrectScore: Points for exact score prediction (default: 3)</description>\r\n  </item>\r\n  <item>\r\n    <description>pointsCorrectOutcome: Points for correct outcome only (default: 1)</description>\r\n  </item>\r\n  <item>\r\n    <description>pointsCorrectGoals: Points for correct total goals</description>\r\n  </item>\r\n  <item>\r\n    <description>Bonus points for bracket predictions (round of 16, quarters, etc.)</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             PUT /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6/settings\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"predictionMode\": \"BeforeKickoff\",\r\n               \"deadlineMinutes\": 15,\r\n               \"pointsCorrectScore\": 3,\r\n               \"pointsCorrectOutcome\": 1,\r\n               \"allowLateEdits\": false\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"predictionMode\": \"BeforeKickoff\",\r\n                 \"deadlineMinutes\": 15,\r\n                 \"pointsCorrectScore\": 3,\r\n                 \"pointsCorrectOutcome\": 1,\r\n                 \"pointsCorrectGoals\": 0,\r\n                 \"allowLateEdits\": false\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID",
             "required": true,
             "schema": {
               "type": "string",
@@ -2582,6 +2747,7 @@
           }
         ],
         "requestBody": {
+          "description": "The settings to update",
           "content": {
             "application/json": {
               "schema": {
@@ -2602,21 +2768,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Settings updated successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeagueSettingsDtoResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LeagueSettingsDtoResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid prediction mode or settings values",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LeagueSettingsDtoResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not the owner of this league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2629,10 +2825,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Retrieves the current standings (leaderboard) for a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Access:</b> User must be a member of the league\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6/standings\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"rank\": 1,\r\n                   \"userId\": \"...\",\r\n                   \"displayName\": \"John Doe\",\r\n                   \"avatarUrl\": \"...\",\r\n                   \"totalPoints\": 45,\r\n                   \"correctScores\": 5,\r\n                   \"correctOutcomes\": 10,\r\n                   \"bonusPoints\": 15\r\n                 },\r\n                 {\r\n                   \"rank\": 2,\r\n                   \"userId\": \"...\",\r\n                   \"displayName\": \"Jane Smith\",\r\n                   \"avatarUrl\": \"...\",\r\n                   \"totalPoints\": 42,\r\n                   \"correctScores\": 4,\r\n                   \"correctOutcomes\": 12,\r\n                   \"bonusPoints\": 10\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID",
             "required": true,
             "schema": {
               "type": "string",
@@ -2642,21 +2841,41 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the standings",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeagueStandingDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LeagueStandingDtoIReadOnlyListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LeagueStandingDtoIReadOnlyListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of this league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2669,10 +2888,13 @@
         "tags": [
           "Leagues"
         ],
+        "summary": "Triggers a full recalculation of standings for a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Use Case:</b> Data integrity checks or after manual corrections to predictions/matches\r\n\r\n\r\n  <b>Side Effects:</b> Recalculates all points for all members based on current match results\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/leagues/3fa85f64-5717-4562-b3fc-2c963f66afa6/standings/recalculate\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": true,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The league ID",
             "required": true,
             "schema": {
               "type": "string",
@@ -2682,21 +2904,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Standings recalculated successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2709,10 +2941,13 @@
         "tags": [
           "Matches"
         ],
+        "summary": "Retrieves matches filtered by tournament ID or date.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Filter:</b> Either tournamentId OR date must be provided (not both, not neither)\r\n\r\n\r\n  <b>Example Request (by tournament):</b>\r\n\r\n```\r\n             GET /api/matches?tournamentId=3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Request (by date):</b>\r\n\r\n```\r\n             GET /api/matches?date=2026-06-15\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                   \"homeTeam\": { \"id\": \"...\", \"name\": \"Brazil\", \"shortName\": \"BRA\" },\r\n                   \"awayTeam\": { \"id\": \"...\", \"name\": \"Germany\", \"shortName\": \"GER\" },\r\n                   \"kickoffTime\": \"2026-06-15T18:00:00Z\",\r\n                   \"status\": \"Scheduled\",\r\n                   \"homeScore\": null,\r\n                   \"awayScore\": null,\r\n                   \"round\": \"Group A\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "tournamentId",
             "in": "query",
+            "description": "Filter by tournament ID",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2721,6 +2956,7 @@
           {
             "name": "date",
             "in": "query",
+            "description": "Filter by match date (format: yyyy-MM-dd)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -2729,21 +2965,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the list of matches",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/MatchListItemDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MatchListItemDtoIReadOnlyListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Neither tournamentId nor date was provided",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MatchListItemDtoIReadOnlyListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2756,10 +3002,13 @@
         "tags": [
           "Matches"
         ],
+        "summary": "Retrieves detailed information for a specific match.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/matches/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"tournamentId\": \"...\",\r\n                 \"homeTeam\": { \"id\": \"...\", \"name\": \"Brazil\", \"shortName\": \"BRA\", \"logoUrl\": \"...\" },\r\n                 \"awayTeam\": { \"id\": \"...\", \"name\": \"Germany\", \"shortName\": \"GER\", \"logoUrl\": \"...\" },\r\n                 \"venue\": { \"id\": \"...\", \"name\": \"Maracana\", \"city\": \"Rio de Janeiro\" },\r\n                 \"kickoffTime\": \"2026-06-15T18:00:00Z\",\r\n                 \"status\": \"Finished\",\r\n                 \"homeScore\": 2,\r\n                 \"awayScore\": 1,\r\n                 \"round\": \"Final\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The unique identifier of the match",
             "required": true,
             "schema": {
               "type": "string",
@@ -2769,21 +3018,74 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the match details",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/MatchDetailDtoResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MatchDetailDtoResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MatchDetailDtoResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Match not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/matches/by-team/{teamId}": {
+      "get": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Retrieves all matches for a specific team (home and away).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/matches/by-team/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"homeTeam\": { \"id\": \"...\", \"name\": \"Brazil\" },\r\n                   \"awayTeam\": { \"id\": \"...\", \"name\": \"Germany\" },\r\n                   \"kickoffTime\": \"2026-06-15T18:00:00Z\",\r\n                   \"status\": \"Finished\",\r\n                   \"homeScore\": 2,\r\n                   \"awayScore\": 1\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "The team ID to get matches for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of matches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchListItemDtoIReadOnlyListResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2796,10 +3098,13 @@
         "tags": [
           "Matches"
         ],
+        "summary": "Updates the result (score and status) of a match (Admin only).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required (Admin role)\r\n\r\n\r\n  <b>Side Effects:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>Triggers scoring of predictions when status becomes \"Finished\"</description>\r\n  </item>\r\n  <item>\r\n    <description>Updates league standings for all leagues with predictions on this match</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             PUT /api/matches/3fa85f64-5717-4562-b3fc-2c963f66afa6/result\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"homeScore\": 2,\r\n               \"awayScore\": 1,\r\n               \"status\": \"Finished\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": true,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The match ID to update",
             "required": true,
             "schema": {
               "type": "string",
@@ -2808,6 +3113,7 @@
           }
         ],
         "requestBody": {
+          "description": "The new score and status",
           "content": {
             "application/json": {
               "schema": {
@@ -2828,21 +3134,215 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Match result updated successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid score or status value",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have Admin role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Match not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/players": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Retrieves all players for a tournament with optional filtering.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/players?tournamentId=3fa85f64-5717-4562-b3fc-2c963f66afa6&position=Attacker&search=Mbappe\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"name\": \"Kylian Mbappe\",\r\n                   \"position\": \"Attacker\",\r\n                   \"number\": 10,\r\n                   \"photoUrl\": \"https://...\",\r\n                   \"teamId\": \"...\",\r\n                   \"teamName\": \"France\",\r\n                   \"teamLogoUrl\": \"https://...\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "query",
+            "description": "The tournament ID to get players for (required)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "position",
+            "in": "query",
+            "description": "Optional filter by position (Goalkeeper, Defender, Midfielder, Attacker)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Optional search term to filter by player name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of players",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerWithTeamDtoIReadOnlyListResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/players/{id}": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Retrieves a specific player by their unique identifier.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/players/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"name\": \"Kylian Mbappe\",\r\n                 \"position\": \"Attacker\",\r\n                 \"number\": 10,\r\n                 \"photoUrl\": \"https://...\",\r\n                 \"teamId\": \"...\",\r\n                 \"teamName\": \"France\",\r\n                 \"teamLogoUrl\": \"https://...\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the player",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the player",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerWithTeamDtoResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Player not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/players/by-team/{teamId}": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Retrieves all players for a specific team.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/players/by-team/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"name\": \"Kylian Mbappe\",\r\n                   \"position\": \"Attacker\",\r\n                   \"number\": 10,\r\n                   \"photoUrl\": \"https://...\"\r\n                 },\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"name\": \"Antoine Griezmann\",\r\n                   \"position\": \"Attacker\",\r\n                   \"number\": 7,\r\n                   \"photoUrl\": \"https://...\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "The team ID to get players for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of players",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerDtoIReadOnlyListResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2855,7 +3355,10 @@
         "tags": [
           "Predictions"
         ],
+        "summary": "Submits a new prediction for a match within a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Rules:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>User must be a member of the specified league</description>\r\n  </item>\r\n  <item>\r\n    <description>Match must belong to the league's tournament</description>\r\n  </item>\r\n  <item>\r\n    <description>Must be submitted before the league's deadline</description>\r\n  </item>\r\n  <item>\r\n    <description>Cannot create duplicate predictions (use PUT to update)</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Side Effects:</b> Creates a Prediction record; points calculated when match finishes\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/predictions\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"leagueId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"matchId\": \"4fb96f75-6818-5673-c4gd-3d074g77bfb7\",\r\n               \"homeScore\": 2,\r\n               \"awayScore\": 1\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": \"5gc07h86-7929-6784-d5he-4e185h88cgc8\",\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
+          "description": "The prediction details",
           "content": {
             "application/json": {
               "schema": {
@@ -2876,21 +3379,61 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Prediction created successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Deadline has passed or validation error",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of the league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League or match not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Prediction already exists for this match",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2901,10 +3444,13 @@
         "tags": [
           "Predictions"
         ],
+        "summary": "Retrieves all predictions for the current user in a specific league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/predictions?leagueId=3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"matchId\": \"...\",\r\n                   \"homeTeam\": \"Brazil\",\r\n                   \"awayTeam\": \"Germany\",\r\n                   \"homeScore\": 2,\r\n                   \"awayScore\": 1,\r\n                   \"points\": 3,\r\n                   \"isCorrectScore\": true,\r\n                   \"isCorrectOutcome\": true,\r\n                   \"matchStatus\": \"Finished\",\r\n                   \"actualHomeScore\": 2,\r\n                   \"actualAwayScore\": 1\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "leagueId",
             "in": "query",
+            "description": "The league ID to get predictions for",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2913,21 +3459,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the user's predictions",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/PredictionDtoListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PredictionDtoListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PredictionDtoListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of the league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2940,7 +3496,10 @@
         "tags": [
           "Predictions"
         ],
+        "summary": "Submits multiple predictions at once for a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Behavior:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>Creates new predictions or updates existing ones</description>\r\n  </item>\r\n  <item>\r\n    <description>Processes all predictions in a single transaction</description>\r\n  </item>\r\n  <item>\r\n    <description>Returns count of created, updated, and failed predictions</description>\r\n  </item>\r\n  <item>\r\n    <description>Individual failures do not roll back successful predictions</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/predictions/bulk\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"leagueId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"predictions\": [\r\n                 { \"matchId\": \"...\", \"homeScore\": 2, \"awayScore\": 1 },\r\n                 { \"matchId\": \"...\", \"homeScore\": 0, \"awayScore\": 0 },\r\n                 { \"matchId\": \"...\", \"homeScore\": 3, \"awayScore\": 2 }\r\n               ]\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"created\": 2,\r\n                 \"updated\": 1,\r\n                 \"failed\": 0,\r\n                 \"errors\": []\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
+          "description": "The league ID and list of predictions",
           "content": {
             "application/json": {
               "schema": {
@@ -2961,21 +3520,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Bulk operation completed (check result for individual failures)",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BulkSubmitPredictionsResultResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BulkSubmitPredictionsResultResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error in request structure",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BulkSubmitPredictionsResultResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of the league",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "League not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2988,10 +3577,13 @@
         "tags": [
           "Predictions"
         ],
+        "summary": "Updates an existing prediction's score.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Rules:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>User must own the prediction</description>\r\n  </item>\r\n  <item>\r\n    <description>Must be updated before the league's deadline</description>\r\n  </item>\r\n  <item>\r\n    <description>Cannot update after match has started (unless AllowLateEdits is enabled)</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             PUT /api/predictions/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"homeScore\": 3,\r\n               \"awayScore\": 1\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": true,\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The prediction ID to update",
             "required": true,
             "schema": {
               "type": "string",
@@ -3000,6 +3592,7 @@
           }
         ],
         "requestBody": {
+          "description": "The new score prediction",
           "content": {
             "application/json": {
               "schema": {
@@ -3020,21 +3613,51 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Prediction updated successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BooleanResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Deadline has passed or match already started",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BooleanResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not own this prediction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Prediction not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3047,10 +3670,13 @@
         "tags": [
           "Predictions"
         ],
+        "summary": "Retrieves the current user's prediction for a specific match in a league.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/predictions/match/3fa85f64-5717-4562-b3fc-2c963f66afa6?leagueId=4fb96f75-6818-5673-c4gd-3d074g77bfb7\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"...\",\r\n                 \"matchId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"homeScore\": 2,\r\n                 \"awayScore\": 1,\r\n                 \"points\": null,\r\n                 \"matchStatus\": \"Scheduled\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "matchId",
             "in": "path",
+            "description": "The match ID",
             "required": true,
             "schema": {
               "type": "string",
@@ -3060,6 +3686,7 @@
           {
             "name": "leagueId",
             "in": "query",
+            "description": "The league ID",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -3068,21 +3695,21 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the prediction or null if not found",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/PredictionDtoResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PredictionDtoResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PredictionDtoResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3095,10 +3722,13 @@
         "tags": [
           "Teams"
         ],
+        "summary": "Retrieves all teams participating in a specific tournament.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/teams?tournamentId=3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                   \"name\": \"Brazil\",\r\n                   \"shortName\": \"BRA\",\r\n                   \"logoUrl\": \"https://example.com/brazil.png\",\r\n                   \"group\": \"A\"\r\n                 },\r\n                 {\r\n                   \"id\": \"4fb96f75-6818-5673-c4gd-3d074g77bfb7\",\r\n                   \"name\": \"Germany\",\r\n                   \"shortName\": \"GER\",\r\n                   \"logoUrl\": \"https://example.com/germany.png\",\r\n                   \"group\": \"A\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "tournamentId",
             "in": "query",
+            "description": "The tournament ID to filter teams by (required)",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -3107,21 +3737,21 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the list of teams",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TeamDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TeamDtoIReadOnlyListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamDtoIReadOnlyListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3134,10 +3764,13 @@
         "tags": [
           "Teams"
         ],
+        "summary": "Retrieves a specific team by its unique identifier.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/teams/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"name\": \"Brazil\",\r\n                 \"shortName\": \"BRA\",\r\n                 \"logoUrl\": \"https://example.com/brazil.png\",\r\n                 \"group\": \"A\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The unique identifier of the team",
             "required": true,
             "schema": {
               "type": "string",
@@ -3147,21 +3780,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the team",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TeamDtoResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TeamDtoResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamDtoResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3174,10 +3817,13 @@
         "tags": [
           "Tournaments"
         ],
+        "summary": "Retrieves all tournaments, optionally filtered to only active ones.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/tournaments?onlyActive=true\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                   \"name\": \"FIFA World Cup 2026\",\r\n                   \"startDate\": \"2026-06-11\",\r\n                   \"endDate\": \"2026-07-19\",\r\n                   \"isActive\": true,\r\n                   \"logoUrl\": \"https://example.com/wc2026.png\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "onlyActive",
             "in": "query",
+            "description": "If true, returns only tournaments where IsActive = true",
             "schema": {
               "type": "boolean",
               "default": false
@@ -3186,21 +3832,21 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the list of tournaments",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TournamentDtoIReadOnlyListResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TournamentDtoIReadOnlyListResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TournamentDtoIReadOnlyListResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3211,7 +3857,10 @@
         "tags": [
           "Tournaments"
         ],
+        "summary": "Creates a new tournament (Admin only).",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required (Admin role)\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/tournaments\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"name\": \"FIFA World Cup 2026\",\r\n               \"startDate\": \"2026-06-11\",\r\n               \"endDate\": \"2026-07-19\",\r\n               \"isActive\": true,\r\n               \"logoUrl\": \"https://example.com/wc2026.png\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
+          "description": "The tournament creation details",
           "content": {
             "application/json": {
               "schema": {
@@ -3232,21 +3881,41 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the ID of the created tournament",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GuidResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error in request body",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GuidResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User does not have Admin role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3259,10 +3928,13 @@
         "tags": [
           "Tournaments"
         ],
+        "summary": "Retrieves a specific tournament by its unique identifier.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/tournaments/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"name\": \"FIFA World Cup 2026\",\r\n                 \"startDate\": \"2026-06-11\",\r\n                 \"endDate\": \"2026-07-19\",\r\n                 \"isActive\": true,\r\n                 \"logoUrl\": \"https://example.com/wc2026.png\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The unique identifier of the tournament",
             "required": true,
             "schema": {
               "type": "string",
@@ -3272,21 +3944,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the tournament",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TournamentDtoResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TournamentDtoResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TournamentDtoResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tournament not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3299,6 +3981,8 @@
         "tags": [
           "Users"
         ],
+        "summary": "Uploads a new avatar image for the current user.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Content-Type:</b> multipart/form-data\r\n\r\n\r\n  <b>Max File Size:</b> 2 MB\r\n\r\n\r\n  <b>Supported Formats:</b> JPEG, PNG, GIF, WebP\r\n\r\n\r\n  <b>Side Effects:</b> Uploads image to Supabase Storage and updates user's AvatarUrl\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             POST /api/users/avatar\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: multipart/form-data\r\n            \r\n             file: [binary image data]\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": \"https://storage.supabase.co/avatars/user-id/avatar.jpg\",\r\n               \"error\": null\r\n             }\r\n             ```",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -3321,21 +4005,303 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Returns the URL of the uploaded avatar",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/StringResult"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StringResult"
                 }
-              },
-              "text/json": {
+              }
+            }
+          },
+          "400": {
+            "description": "File is missing, too large, or invalid format",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StringResult"
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/profile": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Updates the current user's profile information.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Partial Update:</b> Only provided fields are updated; null/omitted fields are ignored\r\n\r\n\r\n  <b>Field Constraints:</b>\r\n\r\n<list type=\"bullet\">\r\n  <item>\r\n    <description>displayName: max 100 characters</description>\r\n  </item>\r\n  <item>\r\n    <description>bio: max 500 characters (send empty string to clear)</description>\r\n  </item>\r\n  <item>\r\n    <description>favoriteTeamId: must reference an existing team</description>\r\n  </item>\r\n</list>\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             PATCH /api/users/profile\r\n             Authorization: Bearer <access_token>\r\n             Content-Type: application/json\r\n            \r\n             {\r\n               \"displayName\": \"John Doe\",\r\n               \"bio\": \"Football enthusiast since 1990\",\r\n               \"favoriteTeamId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\r\n             }\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"username\": \"johndoe\",\r\n                 \"displayName\": \"John Doe\",\r\n                 \"avatarUrl\": \"https://storage.example.com/avatars/user.jpg\",\r\n                 \"bio\": \"Football enthusiast since 1990\",\r\n                 \"favoriteTeamId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"favoriteTeamName\": \"Manchester United\",\r\n                 \"createdAt\": \"2024-01-01T00:00:00Z\",\r\n                 \"updatedAt\": \"2024-01-15T10:30:00Z\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
+        "requestBody": {
+          "description": "The profile fields to update",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns the updated user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDtoResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (e.g., field too long)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Referenced team does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/venues": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Retrieves all venues, optionally filtered by tournament.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/venues?tournamentId=3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": [\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"name\": \"Maracana\",\r\n                   \"city\": \"Rio de Janeiro\",\r\n                   \"country\": \"Brazil\",\r\n                   \"capacity\": 78838,\r\n                   \"imageUrl\": \"https://...\"\r\n                 },\r\n                 {\r\n                   \"id\": \"...\",\r\n                   \"name\": \"Wembley Stadium\",\r\n                   \"city\": \"London\",\r\n                   \"country\": \"England\",\r\n                   \"capacity\": 90000,\r\n                   \"imageUrl\": \"https://...\"\r\n                 }\r\n               ],\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "in": "query",
+            "description": "Optional tournament ID to filter venues by",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of venues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueDtoIReadOnlyListResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/venues/{id}": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Retrieves a specific venue by its unique identifier.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/venues/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\r\n                 \"name\": \"Maracana\",\r\n                 \"city\": \"Rio de Janeiro\",\r\n                 \"country\": \"Brazil\",\r\n                 \"capacity\": 78838,\r\n                 \"imageUrl\": \"https://...\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the venue",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the venue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueDtoResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Venue not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/venues/by-team/{teamId}": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Retrieves the home venue for a specific team.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/venues/by-team/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"...\",\r\n                 \"name\": \"Maracana\",\r\n                 \"city\": \"Rio de Janeiro\",\r\n                 \"country\": \"Brazil\",\r\n                 \"capacity\": 78838,\r\n                 \"imageUrl\": \"https://...\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "description": "The team ID to get the home venue for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the venue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueDtoResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team or venue not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/venues/by-match/{matchId}": {
+      "get": {
+        "tags": [
+          "Venues"
+        ],
+        "summary": "Retrieves the venue for a specific match.",
+        "description": "\r\n\r\n  <b>Auth:</b> JWT Bearer token required\r\n\r\n\r\n  <b>Example Request:</b>\r\n\r\n```\r\n             GET /api/venues/by-match/3fa85f64-5717-4562-b3fc-2c963f66afa6\r\n             Authorization: Bearer <access_token>\r\n             ```\r\n\r\n\r\n  <b>Example Response:</b>\r\n\r\n```\r\n             {\r\n               \"isSuccess\": true,\r\n               \"data\": {\r\n                 \"id\": \"...\",\r\n                 \"name\": \"Wembley Stadium\",\r\n                 \"city\": \"London\",\r\n                 \"country\": \"England\",\r\n                 \"capacity\": 90000,\r\n                 \"imageUrl\": \"https://...\"\r\n               },\r\n               \"error\": null\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "matchId",
+            "in": "path",
+            "description": "The match ID to get the venue for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the venue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VenueDtoResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT token is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Match or venue not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3921,7 +4887,7 @@
             "type": "string",
             "nullable": true
           },
-          "homeTeamFlagUrl": {
+          "homeTeamLogoUrl": {
             "type": "string",
             "nullable": true
           },
@@ -3937,7 +4903,7 @@
             "type": "string",
             "nullable": true
           },
-          "awayTeamFlagUrl": {
+          "awayTeamLogoUrl": {
             "type": "string",
             "nullable": true
           },
@@ -4228,7 +5194,7 @@
             "type": "string",
             "nullable": true
           },
-          "flagUrl": {
+          "logoUrl": {
             "type": "string",
             "nullable": true
           },
@@ -5120,11 +6086,28 @@
             "type": "string",
             "nullable": true
           },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
           "displayName": {
             "type": "string",
             "nullable": true
           },
           "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "favoriteTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "favoriteTeamName": {
             "type": "string",
             "nullable": true
           },
@@ -5169,6 +6152,35 @@
             "nullable": true
           },
           "validationErrors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "nullable": true
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errors": {
             "type": "object",
             "additionalProperties": {
               "type": "array",
@@ -5777,6 +6789,342 @@
         "type": "integer",
         "format": "int32"
       },
+      "MatchUpdateInfo": {
+        "type": "object",
+        "properties": {
+          "matchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "homeTeam": {
+            "type": "string",
+            "nullable": true
+          },
+          "awayTeam": {
+            "type": "string",
+            "nullable": true
+          },
+          "oldStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "newStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "oldScore": {
+            "type": "string",
+            "nullable": true
+          },
+          "newScore": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MergeAction": {
+        "type": "object",
+        "properties": {
+          "oldTeamName": {
+            "type": "string",
+            "nullable": true
+          },
+          "oldTeamId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "newTeamName": {
+            "type": "string",
+            "nullable": true
+          },
+          "newTeamId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transferredDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "transferredFifaRank": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "transferredFifaPoints": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MergeDuplicateTeamsResult": {
+        "type": "object",
+        "properties": {
+          "teamsMerged": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamsDeleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchesUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "predictionsUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "favoritesUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wasDryRun": {
+            "type": "boolean"
+          },
+          "mergeActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MergeAction"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MergeDuplicateTeamsResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MergeDuplicateTeamsResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teamId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "position": {
+            "type": "string",
+            "nullable": true
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "nationality": {
+            "type": "string",
+            "nullable": true
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weight": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "injured": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "apiFootballId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerDtoIReadOnlyListResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerDto"
+            },
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerWithTeamDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teamId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teamName": {
+            "type": "string",
+            "nullable": true
+          },
+          "teamDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "teamLogoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "position": {
+            "type": "string",
+            "nullable": true
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "nationality": {
+            "type": "string",
+            "nullable": true
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weight": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "injured": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "apiFootballId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerWithTeamDtoIReadOnlyListResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerWithTeamDto"
+            },
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerWithTeamDtoResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlayerWithTeamDto"
+          }
+        },
+        "additionalProperties": false
+      },
       "PredictionDto": {
         "type": "object",
         "properties": {
@@ -6090,6 +7438,269 @@
         },
         "additionalProperties": false
       },
+      "SyncGroupStandingsResult": {
+        "type": "object",
+        "properties": {
+          "groupsCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "groupsUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamsAssignedToGroups": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "standingsUpserted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "syncedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncGroupStandingsResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SyncGroupStandingsResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncMatchLineupsResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "lineupsAvailable": {
+            "type": "boolean"
+          },
+          "teamsWithLineups": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncMatchLineupsResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SyncMatchLineupsResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncTeamSquadsResult": {
+        "type": "object",
+        "properties": {
+          "teamsProcessed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamsSkipped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "playersCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "playersUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "syncedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncTeamSquadsResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SyncTeamSquadsResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncTournamentBaselineResult": {
+        "type": "object",
+        "properties": {
+          "teamsUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamsCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamsUnmapped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "venuesUpserted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchesUpserted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchesLinked": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchesSkipped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unmappedTeams": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "syncedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncTournamentBaselineResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SyncTournamentBaselineResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncTournamentResultsResult": {
+        "type": "object",
+        "properties": {
+          "matchesUpdated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchesUnchanged": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchesNotFound": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "apiCallsMade": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MatchUpdateInfo"
+            },
+            "nullable": true
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "syncedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncTournamentResultsResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SyncTournamentResultsResult"
+          }
+        },
+        "additionalProperties": false
+      },
       "TeamDto": {
         "type": "object",
         "properties": {
@@ -6105,11 +7716,15 @@
             "type": "string",
             "nullable": true
           },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
           "code": {
             "type": "string",
             "nullable": true
           },
-          "flagUrl": {
+          "logoUrl": {
             "type": "string",
             "nullable": true
           },
@@ -6463,6 +8078,25 @@
         },
         "additionalProperties": false
       },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "favoriteTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "UpdateTeamRequest": {
         "type": "object",
         "properties": {
@@ -6541,6 +8175,66 @@
         },
         "additionalProperties": false
       },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "favoriteTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "favoriteTeamName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserProfileDtoResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserProfileDto"
+          }
+        },
+        "additionalProperties": false
+      },
       "UserRole": {
         "enum": [
           0,
@@ -6548,6 +8242,133 @@
         ],
         "type": "integer",
         "format": "int32"
+      },
+      "ValidateLeagueResult": {
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean"
+          },
+          "leagueName": {
+            "type": "string",
+            "nullable": true
+          },
+          "leagueType": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasLineupsSupport": {
+            "type": "boolean"
+          },
+          "hasEventsSupport": {
+            "type": "boolean"
+          },
+          "hasStatisticsSupport": {
+            "type": "boolean"
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ValidateLeagueResultResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ValidateLeagueResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VenueDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "surface": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "apiFootballId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VenueDtoIReadOnlyListResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VenueDto"
+            },
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VenueDtoResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VenueDto"
+          }
+        },
+        "additionalProperties": false
       }
     },
     "securitySchemes": {
